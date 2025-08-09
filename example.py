@@ -1,10 +1,13 @@
+import argparse
 import os
-from nanovllm import LLM, SamplingParams
+
 from transformers import AutoTokenizer
 
+from nanovllm import LLM, SamplingParams
 
-def main():
-    path = os.path.expanduser("~/huggingface/Qwen3-0.6B/")
+
+def main(model_path: str):
+    path = os.path.expanduser(model_path)
     tokenizer = AutoTokenizer.from_pretrained(path)
     llm = LLM(path, enforce_eager=True, tensor_parallel_size=1)
 
@@ -18,7 +21,7 @@ def main():
             [{"role": "user", "content": prompt}],
             tokenize=False,
             add_generation_prompt=True,
-            enable_thinking=True
+            enable_thinking=True,
         )
         for prompt in prompts
     ]
@@ -31,4 +34,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    argparse = argparse.ArgumentParser(description="nano vllm")
+    argparse.add_argument(
+        "--model-path", type=str, default="/nfs/ofs-llab-cold/model/Qwen/Qwen3-0.6B"
+    )
+    args = argparse.parse_args()
+
+    main(args.model_path)

@@ -1,6 +1,7 @@
 from collections import deque
-import xxhash
+
 import numpy as np
+import xxhash
 
 from nanovllm.engine.sequence import Sequence
 
@@ -63,7 +64,11 @@ class BlockManager:
         cache_miss = False
         for i in range(seq.num_blocks):
             token_ids = seq.block(i)
-            h = self.compute_hash(token_ids, h) if len(token_ids) == self.block_size else -1
+            h = (
+                self.compute_hash(token_ids, h)
+                if len(token_ids) == self.block_size
+                else -1
+            )
             block_id = self.hash_to_block_id.get(h, -1)
             if block_id == -1 or self.blocks[block_id].token_ids != token_ids:
                 cache_miss = True
@@ -104,7 +109,7 @@ class BlockManager:
             block_table.append(block_id)
         elif len(seq) % self.block_size == 0:
             assert last_block.hash == -1
-            token_ids = seq.block(seq.num_blocks-1)
+            token_ids = seq.block(seq.num_blocks - 1)
             prefix = self.blocks[block_table[-2]].hash if len(block_table) > 1 else -1
             h = self.compute_hash(token_ids, prefix)
             last_block.update(h, token_ids)
