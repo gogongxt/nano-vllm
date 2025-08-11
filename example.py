@@ -6,12 +6,18 @@ from transformers import AutoTokenizer
 from nanovllm import LLM, SamplingParams
 
 
-def main(model_path: str):
-    path = os.path.expanduser(model_path)
+def main(args):
+    path = os.path.expanduser(args.model_path)
     tokenizer = AutoTokenizer.from_pretrained(path)
-    llm = LLM(path, enforce_eager=True, tensor_parallel_size=1)
+    llm = LLM(
+        path,
+        enforce_eager=args.enforce_eager,
+        tensor_parallel_size=args.tensor_parallel_size,
+    )
 
-    sampling_params = SamplingParams(temperature=0.6, max_tokens=256)
+    sampling_params = SamplingParams(
+        temperature=args.temperature, max_tokens=args.max_tokens
+    )
     prompts = [
         "introduce yourself",
         "list all prime numbers within 100",
@@ -38,6 +44,10 @@ if __name__ == "__main__":
     argparse.add_argument(
         "--model-path", type=str, default="/nfs/ofs-llab-cold/model/Qwen/Qwen3-0.6B"
     )
+    argparse.add_argument("--tensor-parallel-size", "--tp", type=int, default=1)
+    argparse.add_argument("--enforce-eager", type=bool, default=True)
+    argparse.add_argument("--temperature", type=float, default=0.6)
+    argparse.add_argument("--max-tokens", type=int, default=256)
     args = argparse.parse_args()
 
-    main(args.model_path)
+    main(args)
